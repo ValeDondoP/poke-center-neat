@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { db } from './firebasedb';
+import axios from "axios";
+import {db} from "./firebasedb";
 
 
-const POKEAPI_URL = 'https://pokeapi.co/api/v2/pokemon';
+const POKEAPI_URL = "https://pokeapi.co/api/v2/pokemon";
 
 interface Pokemon {
   id: string;
@@ -23,7 +23,7 @@ interface PokemonApiResponse {
 
 const getPokemonData = async (id: number): Promise<Pokemon> => {
   const response = await axios.get<PokemonApiResponse>(`${POKEAPI_URL}/${id}`);
-  const { name, types, abilities, sprites } = response.data;
+  const {name, types, abilities, sprites} = response.data;
 
   return {
     id: id.toString(),
@@ -31,7 +31,7 @@ const getPokemonData = async (id: number): Promise<Pokemon> => {
     type: types.map((t) => t.type.name),
     abilities: abilities.map((a) => a.ability.name),
     adopted: false,
-    photo: sprites.front_default
+    photo: sprites.front_default,
   };
 };
 
@@ -41,12 +41,12 @@ const populateFirestore = async () => {
 
   for (let i = 1; i <= 40; i++) {
     const pokemonData = await getPokemonData(i);
-    const docRef = db.collection('pokemon').doc(pokemonData.name);
+    const docRef = db.collection("pokemon").doc(pokemonData.name);
     batch.set(docRef, pokemonData);
   }
 
   await batch.commit();
-  console.log('Firestore has been populated with Pokemon data');
+  console.log("Firestore has been populated with Pokemon data");
 };
 
 // Ejecuta la función populateFirestore

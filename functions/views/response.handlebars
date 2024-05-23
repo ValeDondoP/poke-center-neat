@@ -1,4 +1,9 @@
 <div class="container">
-        <h1>{{message}}</h1>
-        <p>Check your adoption status <a href="/adoption-crud-api/us-central1/miFuncion/adoption-status">Here</a></p>
+    <h1>{{message}}</h1>
+    {{#if trackingId}}
+        <p>
+            Check your adoption status
+            <a href="/adoption-crud-api/us-central1/miFuncion/adoption-status" title="Check your adoption status">Here</a>
+        </p>
+    {{/if}}
 </div>
