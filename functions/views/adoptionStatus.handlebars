@@ -1,0 +1,23 @@
+ <div class="container">
+        <h1>Check Adoption Status</h1>
+        <form id="statusForm" onsubmit="submitForm(event)">
+            <label for="trackingId">Verification Number:</label>
+            <input type="text" id="trackingId" name="trackingId" required>
+            <button type="submit">Check</button>
+        </form>
+        <div id="result">
+            {{#if status}}
+                <p>Status: {{status.status}}</p>
+            {{/if}}
+            {{#if error}}
+                <p>Error: {{error}}</p>
+            {{/if}}
+        </div>
+    </div>
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            const trackingId = document.getElementById('trackingId').value;
+            window.location.href = `/adoption-crud-api/us-central1/miFuncion/adoption-status/${trackingId}`;
+        }
+    </script>

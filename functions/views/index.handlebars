@@ -1,0 +1,25 @@
+<div class="container">
+        <h1>Pokémon Adoption List</h1>
+        <div>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Photo</th>
+                        <th>Adoption</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each pokemons}}
+                        <tr>
+                            <td>{{this.name}}</td>
+                            <td>{{this.type}}</td>
+                            <td><img src="{{this.photo}}" alt="Photo of {{this.name}}" width="150"></td>
+                            <td><a href="/adoption-crud-api/us-central1/miFuncion/adopt-pokemon/{{this.id}}">Adopt</a></td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>

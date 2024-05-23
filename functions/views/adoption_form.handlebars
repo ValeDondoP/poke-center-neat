@@ -1,0 +1,25 @@
+<div class="container">
+        <h1>Adoption Form</h1>
+        <form action="/adoption-crud-api/us-central1/miFuncion/adopt-pokemon/" method="POST">
+            <input type="hidden" name="pokemonId" value="{{pokemonId}}">
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div>
+                <label for="lastname">Last Name:</label>
+                <input type="text" id="lastname" name="lastname" required>
+            </div>
+            <div>
+                <label for="rut">RUT:</label>
+                <input type="text" id="rut" name="rut" required>
+            </div>
+            <div>
+                <label for="description">Why should we give you this Pokémon?</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+
