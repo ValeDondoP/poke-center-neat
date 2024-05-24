@@ -18,11 +18,12 @@ export interface AdoptionRequest {
     name: string;
     lastname: string;
     rut: string;
+    address: string;
     description: string;
     pokemonId: string;
 }
 /**
- * Interfaz para guardar el estado de una adopción
+ * Interfaz para guardar el estado de una adopcion
  */
 export interface AdoptionStatus {
     adoptionRequestId: string;
@@ -37,6 +38,7 @@ export interface Trainer {
   name: string;
   lastname: string;
   rut: string;
+  address: string;
   pokemon: string[]; // list of pokemon IDs
 }
 
@@ -82,7 +84,7 @@ class PokemonRepository {
  * @param {string} pokemonId - El ID del Pokémon a buscar.
  * @return {Promise<Pokemon | null>}
  * Una promesa que se resuelve con el Pokémon encontrado o
- * `null` si no se encontró.
+ * `null` si no se encuentra.
  */
   async findPokemonById(pokemonId: string): Promise<Pokemon | null> {
     const results = await this.collectionRef.where("id", "==", pokemonId).get();
@@ -99,63 +101,66 @@ class PokemonRepository {
    * Busca un Pokémon por su ID y actualiza su estado a adoptado.
    * @param {string} pokemonId - El ID del Pokémon a actualizar.
    * @return {Promise<void>} - Una promesa que se resuelve
-   * cuando la actualización se ha completado.
+   * cuando la actualizacion se ha completado.
    */
   async updatePokemonAdoptedStatus(pokemonId: string): Promise<void> {
     const results = await this.collectionRef.where("id", "==", pokemonId).get();
 
     if (!results.empty) {
-      const docRef = results.docs[0].ref;
-      await docRef.update({adopted: true});
+      const document = results.docs[0].ref;
+      await document.update({adopted: true});
     }
   }
 
   /**
- * Guarda una solicitud de adopción.
+ * Guarda una solicitud de adopcion.
   *
   * @param {AdoptionRequest} adoptionRequest -
-  * La solicitud de adopción a guardar.
+  * La solicitud de adopcion a guardar.
+  * @param {string} trackingId
+  * para setear ese id al objeto
   * @return {Promise<void>}
-  * Una promesa que se resuelve cuando la operación se ha completado.
+  * Una promesa que se resuelve cuando la operacion se ha completado.
  */
-  async saveAdoptionRequest(adoptionRequest: AdoptionRequest): Promise<void> {
-    const adoptionDocRef = this.adoptionRequestRef.doc(adoptionRequest.rut);
-    await adoptionDocRef.set(adoptionRequest);
+  async saveAdoptionRequest(
+    adoptionRequest: AdoptionRequest, trackingId: string
+  ): Promise<void> {
+    const adoptionDoc = this.adoptionRequestRef.doc(trackingId);
+    await adoptionDoc.set(adoptionRequest);
   }
 
   /**
-   * Guarda el estado de una solicitud de adopción.
+   * Guarda el estado de una solicitud de adopcion.
    * @param {AdoptionStatus} adoptionStatus -
-   * El estado de la solicitud de adopción a guardar.
+   * El estado de la solicitud de adopcion a guardar.
    * @return {Promise<void>} -
-   * Una promesa que se resuelve cuando la operación se ha completado.
+   * Una promesa que se resuelve cuando la operacion se ha completado.
  */
   async saveAdoptionStatus(adoptionStatus: AdoptionStatus): Promise<void> {
-    const docRef = this.adoptionStatusRef.doc(adoptionStatus.adoptionRequestId);
-    await docRef.set(adoptionStatus);
+    const doc= this.adoptionStatusRef.doc(adoptionStatus.adoptionRequestId);
+    await doc.set(adoptionStatus);
   }
 
   /**
    * Guarda la información de un entrenador.
-   * @param {Trainer} entrenador - El entrenador a guardar.
+   * @param {Trainer} trainer - El entrenador a guardar.
    * @return {Promise<void>} -
    * Una promesa que se resuelve cuando la operación se ha completado.
  */
-  async saveTrainer(entrenador: Trainer): Promise<void> {
+  async saveTrainer(trainer: Trainer): Promise<void> {
     try {
-      const doc = await this.trainerRef.doc(entrenador.rut).get();
+      const doc = await this.trainerRef.doc(trainer.rut).get();
       if (doc.exists) {
-
         const existingTrainer = doc.data() as Trainer;
 
-        if (!existingTrainer.pokemon.includes(entrenador.pokemon[0])) {
-          existingTrainer.pokemon.push(entrenador.pokemon[0]);
+        if (!existingTrainer.pokemon.includes(trainer.pokemon[0])) {
+          existingTrainer.pokemon.push(trainer.pokemon[0]);
           // actualizar el documento con el pokemon agregado
-          await this.trainerRef.doc(entrenador.rut).set(existingTrainer);
+          await this.trainerRef.doc(trainer.rut).set(existingTrainer);
         }
       } else {
         // el entrenador no existe, se crea un nuevo documento
-        await this.trainerRef.doc(entrenador.rut).set(entrenador);
+        await this.trainerRef.doc(trainer.rut).set(trainer);
       }
     } catch (error) {
       console.error("Error saving trainer:", error);
@@ -163,20 +168,20 @@ class PokemonRepository {
     }
   }
   /**
- * Actualiza el estado de una solicitud de adopción.
+ * Actualiza el estado de una solicitud de adopcion.
  * @param {string} adoptionRequestId
- * El ID de la solicitud de adopción a actualizar.
+ * El ID de la solicitud de adopcin a actualizar.
  * @param {"preparation" | "success"} status
- * El nuevo estado de la solicitud de adopción.
+ * El nuevo estado de la solicitud de adopcion.
  * @return {Promise<void>}
- * Una promesa que se resuelve cuando la operación se ha completado.
+ * Una promesa que se resuelve cuando la operacion se ha completado.
  */
   async updateAdoptionStatus(
     adoptionRequestId: string,
     status: "preparation" | "success"
   ): Promise<void> {
-    const docRef = this.adoptionStatusRef.doc(adoptionRequestId);
-    await docRef.update({status});
+    const doc = this.adoptionStatusRef.doc(adoptionRequestId);
+    await doc.update({status});
   }
 
   /**
@@ -190,14 +195,38 @@ class PokemonRepository {
   async getAdoptionStatusByTrackingId(
     trackingId: string
   ): Promise<AdoptionStatus | null> {
-    const docRef = this.adoptionStatusRef.doc(trackingId);
+    const document = this.adoptionStatusRef.doc(trackingId);
 
-    const doc = await docRef.get();
+    const doc = await document.get();
 
     if (doc.exists) {
       return doc.data() as AdoptionStatus;
     }
     return null;
+  }
+  /**
+ * Obtiene el entrenador por rut
+ * @param {string} rut -
+ * El rut del entrenador.
+ * @return {Promise<Trainer | null>}
+ * Una promesa que se resuelve con el objeto trainer
+ * o `null` si no se encuentra.
+ */
+  async getTrainerByRut(rut: string): Promise<Trainer | null> {
+    try {
+      const document = this.trainerRef.doc(rut);
+      const doc = await document.get();
+
+      if (doc.exists) {
+        const trainerData = doc.data() as Trainer;
+        return trainerData;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error getting trainer by rut:", error);
+      throw new Error("Error getting trainer by rut");
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 <div class="container">
         <h1>Adoption Form</h1>
-        <form action="/adoption-crud-api/us-central1/miFuncion/adopt-pokemon/" method="POST">
+        <form action="/miFuncion/adopt-pokemon/" method="POST">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <input type="hidden" name="pokemonId" value="{{pokemonId}}">
             <div>
                 <label for="name">Name:</label>
@@ -12,7 +13,11 @@
             </div>
             <div>
                 <label for="rut">RUT:</label>
-                <input type="text" id="rut" name="rut" required>
+                <input type="text" id="rut" name="rut" pattern="[0-9]*" required>
+            </div>
+             <div>
+                <label for="address">Address:</label>
+                <input type="text" id="address" name="address" required>
             </div>
             <div>
                 <label for="description">Why should we give you this Pokémon?</label>
@@ -22,6 +27,7 @@
             <label for="document">Upload identification document (optional):</label>
             <input type="file" id="document" name="document">
             </div> -->
+
             <button type="submit">Submit</button>
         </form>
     </div>

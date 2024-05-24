@@ -1,6 +1,6 @@
  <div class="container">
         <h1>Check Adoption Status</h1>
-        <form id="statusForm" onsubmit="submitForm(event)">
+        <form id="statusForm" onsubmit="submitForm(event)" method="GET">
             <label for="trackingId">Verification Number:</label>
             <input type="text" id="trackingId" name="trackingId" required>
             <button type="submit">Check</button>
@@ -18,6 +18,6 @@
         function submitForm(event) {
             event.preventDefault();
             const trackingId = document.getElementById('trackingId').value;
-            window.location.href = `/adoption-crud-api/us-central1/miFuncion/adoption-status/${trackingId}`;
+            window.location.href = `/miFuncion/adoption-status/${trackingId}`;
         }
     </script>

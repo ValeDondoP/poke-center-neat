@@ -101,3 +101,8 @@ a {
 a:hover {
   color: #0056b3;
 }
+
+.link {
+  display: inline-block;
+  margin-left: 5px;
+}

@@ -1,17 +1,15 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
 import * as functions from "firebase-functions";
-import * as express from "express";
+import express from "express";
 import * as exphbs from "express-handlebars";
+
 
 import PokemonService from "./pokemonServices";
 import PokemonRepository, {AdoptionRequest} from "./pokemonRepository";
+
+import cookieParser from "cookie-parser";
+import csurf from "csurf";
+import bodyParser from "body-parser";
+
 
 // const path = require("path");
 // Crea una instancia de Express
@@ -20,40 +18,56 @@ const app = express();
 app.use(express.static("public"));
 
 app.use(express.urlencoded({extended: true}));
-// Set handlebars as the view engine
+
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(csurf({cookie: true}));
+
+let globalCsrfToken: string;
+// Setear handlebars
 app.engine("handlebars", exphbs.engine());
 app.set("view engine", "handlebars");
 
-// Crear una instancia del repositorio si es necesario
-const repository = new PokemonRepository();
 
-// Crear una instancia del servicio y pasarle el repositorio
+// Crear instancias del provider y service
+const repository = new PokemonRepository();
 const pokemonService = new PokemonService(repository);
 
 
 app.get("/", async (req, res) => {
   const pokemons = await pokemonService.getAllPokemons();
-  console.log(pokemons[1]);
+
   res.render("index", {pokemons});
 });
 
 app.get("/adopt-pokemon/:id", (req, res) => {
   const pokemonId = req.params.id;
-  res.render("adoption_form", {pokemonId});
+  globalCsrfToken = req.csrfToken();
+
+  res.render("adoptionForm", {pokemonId, csrfToken: globalCsrfToken});
 });
 
 app.post("/adopt-pokemon", async (req, res) => {
-  const {name, lastname, rut, description, pokemonId} = req.body;
+  const {name, lastname, rut, address, description, pokemonId,
+    _csrf} = req.body;
 
+  if (globalCsrfToken !== _csrf) {
+    res.status(403).send("Invalid CSRF token");
+    return;
+  }
   const adoptionRequest: AdoptionRequest = {
     name,
     lastname,
     rut,
+    address,
     description,
     pokemonId,
   };
-  const { message, trackingId } = await pokemonService.adoptPokemon(adoptionRequest);
-  console.log(adoptionRequest);
+  const {
+    message, trackingId,
+  } = await pokemonService.adoptPokemon(adoptionRequest);
+
+
   res.render("response", {message, trackingId});
 });
 

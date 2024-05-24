@@ -2,8 +2,12 @@
     <h1>{{message}}</h1>
     {{#if trackingId}}
         <p>
-            Check your adoption status
-            <a href="/adoption-crud-api/us-central1/miFuncion/adoption-status" title="Check your adoption status">Here</a>
+            Copy the trackingId and check your adoption status
+            <a href="/miFuncion/adoption-status" title="Check your adoption status">Here</a>
+        </p>
+    {{else}}
+        <p>
+            You can try again and adopt a pokemon <span class="link"><a href="/miFuncion/">Here</a></span>.
         </p>
     {{/if}}
 </div>

@@ -42,12 +42,14 @@ class PokemonService {
  * Adopta un Pokémon.
  * @param {AdoptionRequest} adoptionRequest
  * - La solicitud de adopción del Pokémon.
- * @return {Promise<string>}
+ * @return {Promise<{string,string}>}
  * - Una promesa que se resuelve con un mensaje
  * de confirmación o rechazo de la adopción.
  * @throws {Error} - Error si ocurre un problema durante el proceso de adopción.
  */
-  async adoptPokemon(adoptionRequest: AdoptionRequest): Promise<{ message: string, trackingId?: string }> {
+  async adoptPokemon(
+    adoptionRequest: AdoptionRequest
+  ): Promise<{ message: string, trackingId?: string }> {
     const pokemon = await this.repository.findPokemonById(
       adoptionRequest.pokemonId
     );
@@ -59,28 +61,40 @@ class PokemonService {
       throw new Error("Pokemon already adopted");
     }
 
+    const trainer = await this.repository.getTrainerByRut(adoptionRequest.rut);
+
+
+    let probability = 0.5;
+
+    // Si el rut existe en la tabla Trainer,
+    // entonces la probabilidad de aceptar es del 95%
+    if (trainer) {
+      probability = 0.95;
+    }
+
     const number = Math.random();
-    console.log("numerooo")
-    console.log(number)
-    if (number < 0.5) {
+
+    if (number < probability) {
       const trackingId = uuidv4();
       await this.repository.updatePokemonAdoptedStatus(
         adoptionRequest.pokemonId
       );
-      await this.repository.saveAdoptionRequest(adoptionRequest);
+      await this.repository.saveAdoptionRequest(adoptionRequest, trackingId);
 
       const adoptionStatus: AdoptionStatus = {
         adoptionRequestId: trackingId,
         rut: adoptionRequest.rut,
         status: "preparation",
       };
+
       const trainer: Trainer = {
         name: adoptionRequest.name,
         lastname: adoptionRequest.lastname,
         rut: adoptionRequest.rut,
+        address: adoptionRequest.address,
         pokemon: [adoptionRequest.pokemonId],
       };
-      await this.repository.saveTrainer(trainer);
+
 
       await this.repository.saveAdoptionStatus(adoptionStatus);
 
@@ -89,25 +103,28 @@ class PokemonService {
         await this.repository.updateAdoptionStatus(trackingId, "success");
       }, 60000);
 
+      await this.repository.saveTrainer(trainer);
+
       return {
         message: `Adoption application accepted. Tracking ID: ${trackingId}`,
-        trackingId: trackingId
-    };
+        trackingId: trackingId,
+      };
     } else {
-      return { message: "Your application has been rejected" };
+      return {message: "Your application has been rejected"};
     }
   }
 
   /**
- * Obtiene el estado de adopción de un Pokémon mediante su ID de seguimiento.
- * @param {string} trackingId
- * El ID de seguimiento de la solicitud de adopción.
+ * Obtiene el adoption status
+ * @param {string} trackingId -
  * @return {Promise<AdoptionStatus | null>}
- * Una promesa que se resuelve con el estado de la adopción
- * o `null` si no se encuentra.
  */
-  async getAdoptionStatus(trackingId: string): Promise<AdoptionStatus | null> {
-    return await this.repository.getAdoptionStatusByTrackingId(trackingId);
+  async getAdoptionStatus(
+    trackingId: string
+  ): Promise<AdoptionStatus | null> {
+    return await this.repository.getAdoptionStatusByTrackingId(
+      trackingId
+    );
   }
 }
 
