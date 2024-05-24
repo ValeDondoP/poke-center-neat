@@ -34,18 +34,23 @@ const repository = new PokemonRepository();
 const pokemonService = new PokemonService(repository);
 
 
+// endpoint para obtener todos los pokemones no adoptados
 app.get("/", async (req, res) => {
   const pokemons = await pokemonService.getAllPokemons();
 
   res.render("index", {pokemons});
 });
 
+
+// endpoint para formulario de adopcion
 app.get("/adopt-pokemon/:id", (req, res) => {
   const pokemonId = req.params.id;
   globalCsrfToken = req.csrfToken();
 
   res.render("adoptionForm", {pokemonId, csrfToken: globalCsrfToken});
 });
+
+
 
 app.post("/adopt-pokemon", async (req, res) => {
   const {name, lastname, rut, address, description, pokemonId,
@@ -71,6 +76,7 @@ app.post("/adopt-pokemon", async (req, res) => {
   res.render("response", {message, trackingId});
 });
 
+// devuelve el formulario de estado de adopcion
 app.get("/adoption-status", (req, res) => {
   res.render("adoptionStatus");
 });
